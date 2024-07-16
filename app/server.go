@@ -29,7 +29,7 @@ func main() {
 	conn.Read(req)
 	str := string(req)
 	if !strings.HasPrefix(str, "GET / HTTP/1.1") {
-		conn.Write([]byte("HTTP/1.1 400 Not Found\r\n"))
+		conn.Write([]byte("HTTP/1.1 400 Not Found\r\n\r\n"))
 		conn.Close()
 		return
 	}
