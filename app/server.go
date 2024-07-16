@@ -15,7 +15,9 @@ func main() {
 
 	// Uncomment this block to pass the first stage
 	//
-	l, err := net.Listen("tcp", "0.0.0.0:4221")
+	// port := "localhost:4221"
+	port := "0.0.0.0:4221"
+	l, err := net.Listen("tcp", port)
 	if err != nil {
 		fmt.Println("Failed to bind to port 4221")
 		os.Exit(1)
@@ -29,24 +31,21 @@ func main() {
 	req := make([]byte, 1024)
 	conn.Read(req)
 	str := string(req)
-	switch {
-	case strings.HasPrefix(str, "GET /"):
-		{
-			conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
-			conn.Close()
-			return
-
-		}
-	case strings.HasPrefix(str, "GET /echo"):
-		{
-			sp := strings.Split(str, "echo/")
-			fmt.Println(sp)
-		}
-	default:
-		{
-			conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
-			conn.Close()
-			return
-		}
+	fmt.Println("req path ", str)
+	path := strings.Split(str, " ")[1]
+	if path == "/" {
+		conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+		conn.Close()
+		return
+	} else if strings.Split(str, "/")[1] == "echo" {
+		param := strings.Split(path, "/")[2]
+		res := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(param), param)
+		conn.Write([]byte(res))
+		conn.Close()
+		return
+	} else {
+		conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
+		conn.Close()
+		return
 	}
 }
