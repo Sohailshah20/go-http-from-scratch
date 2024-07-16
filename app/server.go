@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strings"
+
 	// Uncomment this block to pass the first stage
 	"net"
 	"os"
@@ -28,11 +29,24 @@ func main() {
 	req := make([]byte, 1024)
 	conn.Read(req)
 	str := string(req)
-	if !strings.HasPrefix(str, "GET / HTTP/1.1") {
-		conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
-		conn.Close()
-		return
-	}
-	conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+	switch {
+	case strings.HasPrefix(str, "GET /"):
+		{
+			conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+			conn.Close()
+			return
 
+		}
+	case strings.HasPrefix(str, "GET /echo"):
+		{
+			sp := strings.Split(str, "echo/")
+			fmt.Println(sp)
+		}
+	default:
+		{
+			conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
+			conn.Close()
+			return
+		}
+	}
 }
