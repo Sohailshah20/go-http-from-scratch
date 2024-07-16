@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	// Uncomment this block to pass the first stage
 	"net"
 	"os"
@@ -23,6 +24,14 @@ func main() {
 	if err != nil {
 		fmt.Println("Error accepting connection: ", err.Error())
 		os.Exit(1)
+	}
+	req := make([]byte, 1024)
+	conn.Read(req)
+	str := string(req)
+	if !strings.HasPrefix(str, "GET / HTTP/1.1") {
+		conn.Write([]byte("HTTP/1.1 400 Not Found\r\n"))
+		conn.Close()
+		return
 	}
 	conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
 
