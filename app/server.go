@@ -46,7 +46,7 @@ func main() {
 		conn.Close()
 		return
 	} else if path == "echo" {
-		param := strings.Split(path, "/")[2]
+		param := strings.Split(first[1], "/")[2]
 		res := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(param), param)
 		conn.Write([]byte(res))
 		conn.Close()
