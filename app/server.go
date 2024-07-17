@@ -15,8 +15,8 @@ func main() {
 
 	// Uncomment this block to pass the first stage
 	//
-	// port := "localhost:4221"
-	port := "0.0.0.0:4221"
+	port := "localhost:4221"
+	// port := "0.0.0.0:4221"
 	l, err := net.Listen("tcp", port)
 	if err != nil {
 		fmt.Println("Failed to bind to port 4221")
@@ -31,15 +31,28 @@ func main() {
 	req := make([]byte, 1024)
 	conn.Read(req)
 	str := string(req)
-	fmt.Println("req path ", str)
 	path := strings.Split(str, " ")[1]
 	if path == "/" {
 		conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
 		conn.Close()
 		return
-	} else if strings.Split(str, "/")[1] == "echo" {
+	} else if strings.Split(path, "/")[1] == "echo" {
 		param := strings.Split(path, "/")[2]
 		res := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(param), param)
+		conn.Write([]byte(res))
+		conn.Close()
+		return
+	} else if strings.Split(path, "/")[1] == "user-agent" {
+		parts := strings.Split(str, "\r\n")[1]
+		var resStr string = ""
+		for i := 1; i < len(parts)-2; i++ {
+			//spearating header key value
+			header := strings.Split(parts, ":")
+			if header[0] == "User-Agent" {
+				resStr = header[1]
+			}
+		}
+		res := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(resStr), resStr)
 		conn.Write([]byte(res))
 		conn.Close()
 		return
