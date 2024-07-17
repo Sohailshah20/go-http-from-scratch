@@ -31,31 +31,38 @@ func main() {
 	req := make([]byte, 1024)
 	conn.Read(req)
 	str := string(req)
-	path := strings.Split(str, " ")[1]
+	fmt.Println("req path ", str)
+	clrf := strings.Split(str, "\r\n")
+	first := strings.Split(clrf[0], " ")
+	var path string
+	execPath := strings.Split(first[1], "/")[1]
+	if len(execPath) > 0 {
+		path = execPath
+	} else {
+		path = "/"
+	}
 	if path == "/" {
 		conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
 		conn.Close()
 		return
-	} else if strings.Split(path, "/")[1] == "echo" {
+	} else if path == "echo" {
 		param := strings.Split(path, "/")[2]
 		res := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(param), param)
 		conn.Write([]byte(res))
 		conn.Close()
 		return
-	} else if strings.Split(path, "/")[1] == "user-agent" {
-		parts := strings.Split(str, "\r\n")[1]
-		var resStr string = ""
-		for i := 1; i < len(parts)-2; i++ {
-			//spearating header key value
-			header := strings.Split(parts, ":")
-			if header[0] == "User-Agent" {
-				resStr = header[1]
-			}
+	} else if path == "user-agent" {
+		clrf := strings.Split(str, "\r\n")
+		headers := make(map[string]string)
+		for i := 1; i < len(clrf)-2; i++ {
+			split := strings.SplitN(clrf[i], ":", 2)
+			headers[strings.TrimLeft(split[0], " ")] = strings.TrimLeft(split[1], " ")
 		}
-		res := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(resStr), resStr)
+		res := fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", len(headers["User-Agent"]), headers["User-Agent"])
 		conn.Write([]byte(res))
 		conn.Close()
 		return
+
 	} else {
 		conn.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
 		conn.Close()
